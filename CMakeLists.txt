@@ -16,3 +16,4 @@ target_link_libraries(mini-netreboot-serve ${ArgParse_LDFLAGS})
 target_link_libraries(mini-netreboot-read ${ArgParse_LDFLAGS})
 
 install(TARGETS mini-netreboot-serve mini-netreboot-read DESTINATION bin)
+install(FILES conf/mini-netreboot.conf DESTINATION etc/mini-netreboot)
