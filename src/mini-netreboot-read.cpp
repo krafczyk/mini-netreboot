@@ -37,7 +37,7 @@ bool socket_connect(int* sock, const char* host, const in_port_t port) {
 
 int sockfd = -1;
 void terminate(int signum) {
-	printf("Gracefully closing..");
+	printf("Gracefully closing..\n");
 	if (sockfd != -1) {
 		close(sockfd);
 	}
@@ -49,13 +49,16 @@ int main(int argc, char** argv) {
 	memset(&action, 0, sizeof(struct sigaction));
 	action.sa_handler = terminate;
 	sigaction(SIGTERM, &action, NULL);
+	sigaction(SIGINT, &action, NULL);
 
-	std::string address = "localhost";
+	std::string host = "localhost";
 	int port = 9090;
+	bool debug = false;
 
 	ArgParse::ArgParser Parser("mini-netreboot-read");
 	Parser.AddArgument("-h/--host", "Host to connect to", &host);
 	Parser.AddArgument("-p/--port", "Port to connect to", &port);
+	Parser.AddArgument("-d/--debug", "Report whats going on", &debug);
 
 	if(Parser.ParseArgs(argc, argv) < 0) {
 		printf("There was a problem parsing args!");
@@ -68,7 +71,7 @@ int main(int argc, char** argv) {
 
 	while (true) {
 		//Connect to specified host/port
-		if(!socket_connect(&sockfd, address.c_str(), port)) {
+		if(!socket_connect(&sockfd, host.c_str(), port)) {
 			return -2;
 		}
 	
@@ -87,11 +90,15 @@ int main(int argc, char** argv) {
 			continue;
 		}
 	
+		if (debug) {
+			printf("%s\n", message_buffer);
+		}
+
 		std::string message(message_buffer);
 		if(message == "REBOOT") {
 			printf("Received the reboot signal!!!");
 		}
-	
+
 		close(sockfd);
 		//Reset socket after closing
 		sockfd = -1;

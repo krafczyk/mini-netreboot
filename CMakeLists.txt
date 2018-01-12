@@ -5,6 +5,8 @@ find_package(PkgConfig)
 
 pkg_search_module(ArgParse REQUIRED ArgParse)
 
+add_definitions("-std=c++11")
+
 include_directories(${ArgParse_INCLUDEDIR})
 
 add_executable(mini-netreboot-serve src/mini-netreboot-serve.cpp)
