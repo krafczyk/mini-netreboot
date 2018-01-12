@@ -83,6 +83,34 @@ void reset_message(const std::string& filepath) {
 	return;
 }
 
+void read_configuration_file(std::string& read_host, int& read_port, int& serve_port, std::string& serve_file, const std::string& filepath) {
+	const int max_length = 1024;
+	char value_str[max_length];
+	int value;
+
+	//Don't do anything if can't access
+	if(access(filepath.c_str(), F_OK) == -1) {
+		return;
+	}
+
+	//Open file
+	FILE* fconf = fopen(filepath.c_str(), "r");
+	if (fconf == 0) {
+		return;
+	}
+
+	//Can easily fail if not in just the right format.
+	fscanf(fconf, "read-host %s\n", value_str);
+	read_host = value_str;
+	fscanf(fconf, "read-port %d\n", &value);
+	read_port = value;
+	fscanf(fconf, "serve-port %d\n", &value);
+	serve_port = value;
+	fscanf(fconf, "serve-file %s\n", value_str);
+	serve_file = value_str;
+	return;
+}
+
 int sockfd = -1;
 void terminate(int signum) {
 	printf("Gracefully closing..\n");
@@ -100,15 +128,11 @@ int main(int argc, char** argv) {
 	sigaction(SIGTERM, &action, NULL);
 	sigaction(SIGINT, &action, NULL);
 
-	std::string host = "localhost";
-	int port = 9090;
-	std::string filepath = "/reboot.txt";
+	std::string config_path = "/etc/mini-netreboot/mini-netreboot.conf";
 	bool debug = false;
 
 	ArgParse::ArgParser Parser("mini-netreboot-serve");
-	Parser.AddArgument("-h/--host", "Host to listen on", &host);
-	Parser.AddArgument("-p/--port", "Port to listen on", &port);
-	Parser.AddArgument("-f/--file", "File containing message to send", &filepath);
+	Parser.AddArgument("-c/--conf", "Filepath of config file", &config_path);
 	Parser.AddArgument("-d/--debug", "Report whats going on", &debug);
 
 	if(Parser.ParseArgs(argc, argv) < 0) {
@@ -120,7 +144,14 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	if(!socket_bind(&sockfd, host.c_str(), port)) {
+	std::string read_host = "localhost";
+	int read_port = 9090;
+	int serve_port = 9090;
+	std::string serve_file = "/reboot.txt";
+
+	read_configuration_file(read_host, read_port, serve_port, serve_file, config_path);
+
+	if(!socket_bind(&sockfd, "localhost", serve_port)) {
 		printf("1 1\n");
 		return -2;
 	}
@@ -146,14 +177,14 @@ int main(int argc, char** argv) {
 		}
 
 		//Fetch message from disk if it exists.
-		fetch_message(message, message_length, filepath);
+		fetch_message(message, message_length, serve_file);
 
 		if (debug) {
 			printf("Sending: %s\n", message);
 		}
 
 		//Reset the message before sending!
-		reset_message(filepath);
+		reset_message(serve_file);
 
 		//Send the client the message
 		send(clientfd, message, message_length, 0);
