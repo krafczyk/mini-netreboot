@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include <algorithm>
 
 #include "ArgParse/ArgParse.h"
 
@@ -54,6 +55,12 @@ void reboot() {
 	write(fd, "b", 1);
 	close(fd);
 	return;
+}
+
+static inline void rtrim(std::string& s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+		return !std::isspace(ch);
+	}).base(), s.end());
 }
 
 int sockfd = -1;
@@ -116,6 +123,8 @@ int main(int argc, char** argv) {
 		}
 
 		std::string message(message_buffer);
+		//Trim the message of whitespace
+		rtrim(message);
 		if(message == "REBOOT") {
 			reboot();
 		}
