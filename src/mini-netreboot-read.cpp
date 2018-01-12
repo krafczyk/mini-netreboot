@@ -13,27 +13,42 @@
 #include "ArgParse/ArgParse.h"
 
 bool socket_connect(int* sock, const char* host, const in_port_t port) {
-	struct hostent *hp;
-	struct sockaddr_in addr;
+	struct addrinfo hints;
+	struct addrinfo* servinfo;
+	struct addrinfo* p;
+	int rv;
 
-	if((hp = gethostbyname(host)) == NULL) {
-		herror("gethostbyname");
+	char port_num[32];
+	sprintf(port_num, "%d", port);
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if ((rv = getaddrinfo(host, port_num, &hints, &servinfo)) != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return false;
 	}
 
-	bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
+	for(p = servinfo; p != NULL; p = p->ai_next) {
+		if ((*sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+			perror("socket");
+			continue;
+		}
 
-	if(((*sock) = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-		perror("socket");
+		if (connect(*sock, p->ai_addr, p->ai_addrlen) == -1) {
+			perror("connect");
+			close(*sock);
+			continue;
+		}
+		break;
+	}
+
+	if (p == NULL) {
+		fprintf(stderr, "Failed to connect.\n");
 		return false;
 	}
 
-	if(connect((*sock), (struct sockaddr*) &addr, sizeof(struct sockaddr_in)) != 0) {
-		perror("connect");
-		return false;
-	}
+	freeaddrinfo(servinfo);
 	return true;
 }
 
@@ -102,6 +117,7 @@ int main(int argc, char** argv) {
 	while (true) {
 		//Connect to specified host/port
 		if(!socket_connect(&sockfd, host.c_str(), port)) {
+			printf("Couldn't create or connect to socket");
 			return -2;
 		}
 	
