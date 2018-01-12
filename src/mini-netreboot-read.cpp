@@ -45,21 +45,21 @@ void reboot() {
 
 	if(access(kernel_sysrq_trigger, F_OK) == -1) {
 		//Activate Magic SysRq Option
-		int fd = open(kernel_sysrq, O_WRONLY);
-		write(fd, "1", 1);
+		FILE* f = fopen(kernel_sysrq, "a");
+		fprintf(f, "1");
 		//Flush the buffer!
-		fsync(fd);
-		close(fd);
+		fflush(f);
+		fclose(f);
 		//Sleep for a sec to allow the trigger to appear.
 		sleep(1);
 	}
 
 	//Reboot!
-	int fd = open(kernel_sysrq_trigger, O_WRONLY);
-	write(fd, "b", 1);
+	FILE* f = fopen(kernel_sysrq_trigger, "a");
+	fprintf(f, "b");
 	//flush the buffer!
-	fsync(fd);
-	close(fd);
+	fflush(f);
+	fclose(f);
 	return;
 }
 
