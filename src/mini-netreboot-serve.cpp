@@ -152,10 +152,11 @@ int main(int argc, char** argv) {
 			printf("Sending: %s\n", message);
 		}
 
+		//Reset the message before sending!
+		reset_message(filepath);
+
 		//Send the client the message
 		send(clientfd, message, message_length, 0);
-
-		reset_message(filepath);
 
 		close(clientfd);
 	}
