@@ -42,17 +42,16 @@ void reboot() {
 	printf("REBOOT Triggered!!\n");
 	const char* kernel_sysrq = "/proc/sys/kernel/sysrq";
 	const char* kernel_sysrq_trigger = "/proc/sysrq-trigger";
-	if(access(kernel_sysrq_trigger, F_OK) == -1) {
-		int fd = open(kernel_sysrq, O_WRONLY);
-		//Activate Magic SysRq Option
-		write(fd, "1\n", 2);
-		close(fd);
-		//Sleep for a sec to allow the trigger to appear.
-		sleep(1);
-	}
+
+	//Activate Magic SysRq Option
+	int fd = open(kernel_sysrq, O_WRONLY);
+	write(fd, "1\n", 2);
+	close(fd);
+	//Sleep for a sec to allow the trigger to appear.
+	sleep(1);
 
 	//Reboot!
-	int fd = open(kernel_sysrq_trigger, O_WRONLY);
+	fd = open(kernel_sysrq_trigger, O_WRONLY);
 	write(fd, "b\n", 2);
 	close(fd);
 	return;
