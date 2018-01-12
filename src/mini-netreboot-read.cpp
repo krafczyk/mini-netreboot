@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <fcntl.h>
 
 #include "ArgParse/ArgParse.h"
 
@@ -33,6 +34,26 @@ bool socket_connect(int* sock, const char* host, const in_port_t port) {
 		return false;
 	}
 	return true;
+}
+
+//This function reboots the machine forcefully.
+void reboot() {
+	const char* kernel_sysrq = "/proc/sys/kernel/sysrq";
+	const char* kernel_sysrq_trigger = "/proc/sysrq-trigger";
+	if(access(kernel_sysrq_trigger, F_OK) == -1) {
+		int fd = open(kernel_sysrq, O_WRONLY);
+		//Activate Magic SysRq Option
+		write(fd, "1", 1);
+		close(fd);
+		//Sleep for a sec to allow the trigger to appear.
+		sleep(1);
+	}
+
+	//Reboot!
+	fd = open(kernel_sysrq_trigger, O_WRONLY);
+	write(fd, "b", 1);
+	close(fd);
+	return;
 }
 
 int sockfd = -1;
@@ -96,7 +117,7 @@ int main(int argc, char** argv) {
 
 		std::string message(message_buffer);
 		if(message == "REBOOT") {
-			printf("Received the reboot signal!!!");
+			reboot();
 		}
 
 		close(sockfd);
