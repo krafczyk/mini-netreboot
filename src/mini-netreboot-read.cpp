@@ -39,7 +39,7 @@ bool socket_connect(int* sock, const char* host, const in_port_t port) {
 
 //This function reboots the machine forcefully.
 void reboot() {
-	printf("REBOOT Triggered!!");
+	printf("REBOOT Triggered!!\n");
 	const char* kernel_sysrq = "/proc/sys/kernel/sysrq";
 	const char* kernel_sysrq_trigger = "/proc/sysrq-trigger";
 	if(access(kernel_sysrq_trigger, F_OK) == -1) {
