@@ -51,7 +51,7 @@ void reboot() {
 	}
 
 	//Reboot!
-	fd = open(kernel_sysrq_trigger, O_WRONLY);
+	int fd = open(kernel_sysrq_trigger, O_WRONLY);
 	write(fd, "b", 1);
 	close(fd);
 	return;
