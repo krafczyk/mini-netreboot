@@ -44,7 +44,7 @@ void reboot() {
 	if(access(kernel_sysrq_trigger, F_OK) == -1) {
 		int fd = open(kernel_sysrq, O_WRONLY);
 		//Activate Magic SysRq Option
-		write(fd, "1", 1);
+		write(fd, "1\n", 2);
 		close(fd);
 		//Sleep for a sec to allow the trigger to appear.
 		sleep(1);
@@ -52,7 +52,7 @@ void reboot() {
 
 	//Reboot!
 	int fd = open(kernel_sysrq_trigger, O_WRONLY);
-	write(fd, "b", 1);
+	write(fd, "b\n", 2);
 	close(fd);
 	return;
 }
