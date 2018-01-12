@@ -48,17 +48,17 @@ void reboot() {
 		int fd = open(kernel_sysrq, O_WRONLY);
 		write(fd, "1", 1);
 		//Flush the buffer!
-		fflush(fd);
+		fsync(fd);
 		close(fd);
 		//Sleep for a sec to allow the trigger to appear.
 		sleep(1);
 	}
 
 	//Reboot!
-	fd = open(kernel_sysrq_trigger, O_WRONLY);
+	int fd = open(kernel_sysrq_trigger, O_WRONLY);
 	write(fd, "b", 1);
 	//flush the buffer!
-	fflush(fd);
+	fsync(fd);
 	close(fd);
 	return;
 }
