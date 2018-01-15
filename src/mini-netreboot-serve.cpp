@@ -10,18 +10,13 @@
 
 #include "ArgParse/ArgParse.h"
 
-bool socket_bind(int* sock, const char* host, const in_port_t port) {
-	struct hostent *hp;
+bool socket_bind(int* sock, const in_port_t port) {
 	struct sockaddr_in addr;
 
-	if((hp = gethostbyname(host)) == NULL) {
-		herror("gethostbyname");
-		return false;
-	}
-
-	bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
+	memset(&addr, 0, sizeof(addr));
 	addr.sin_port = htons(port);
 	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if(((*sock) = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
 		perror("socket");
@@ -151,7 +146,7 @@ int main(int argc, char** argv) {
 
 	read_configuration_file(read_host, read_port, serve_port, serve_file, config_path);
 
-	if(!socket_bind(&sockfd, "localhost", serve_port)) {
+	if(!socket_bind(&sockfd, serve_port)) {
 		printf("1 1\n");
 		return -2;
 	}
