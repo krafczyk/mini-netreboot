@@ -69,17 +69,6 @@ void reboot() {
 
 	//Reboot!
 	int fd = open(kernel_sysrq_trigger, O_WRONLY);
-	// Perform a 'proper' reset
-	write(fd, "r", 1);
-	sleep(1);
-	write(fd, "e", 1);
-	sleep(1);
-	write(fd, "i", 1);
-	sleep(1);
-	write(fd, "s", 1);
-	sleep(1);
-	write(fd, "u", 1);
-	sleep(1);
 	write(fd, "b", 1);
 	close(fd);
 	return;
