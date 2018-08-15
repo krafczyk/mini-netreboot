@@ -71,7 +71,7 @@ void reset_message(const std::string& filepath) {
 
 	std::string message = "NORMAL";
 	//Doesn't matter what was written really.
-	write(fd, message.c_str(), message.size());
+	write(fd, message.c_str(), 6);
 
 	//Close file and exit
 	close(fd);
