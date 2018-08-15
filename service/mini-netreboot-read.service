@@ -1,0 +1,10 @@
+[Unit]
+Description=Mini Netreboot Reader
+
+[Service]
+ExecStart=/usr/bin/mini-netreboot-read
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

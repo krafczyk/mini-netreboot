@@ -1,0 +1,10 @@
+[Unit]
+Description=Mini Netreboot Server
+
+[Service]
+ExecStart=/usr/bin/mini-netreboot-serve
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
