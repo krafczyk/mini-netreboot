@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <algorithm>
 
-#include "ArgParse/ArgParse.h"
+#include "ArgParseStandalone.h"
 
 bool socket_connect(int* sock, const char* host, const in_port_t port) {
 	struct addrinfo hints;

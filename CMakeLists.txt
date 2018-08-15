@@ -3,11 +3,9 @@ project(mini-netreboot)
 
 find_package(PkgConfig)
 
-pkg_search_module(ArgParse REQUIRED ArgParse)
-
 add_definitions("-std=c++11")
 
-include_directories(${ArgParse_INCLUDEDIR})
+include_directories(inc)
 
 add_executable(mini-netreboot-serve src/mini-netreboot-serve.cpp)
 add_executable(mini-netreboot-read src/mini-netreboot-read.cpp)
