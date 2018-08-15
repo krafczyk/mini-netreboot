@@ -147,13 +147,13 @@ int main(int argc, char** argv) {
 	read_configuration_file(read_host, read_port, serve_port, serve_file, config_path);
 
 	if(!socket_bind(&sockfd, serve_port)) {
-		printf("1 1\n");
+		perror("bind: ");
 		return -2;
 	}
 
 	// Listen to the port
 	if (listen(sockfd, 20) != 0) {
-		perror("listen");
+		perror("listen: ");
 		return -3;
 	}
 

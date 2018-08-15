@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
 	while (true) {
 		//Connect to specified host/port
 		if(!socket_connect(&sockfd, host.c_str(), port)) {
-			printf("Couldn't create or connect to socket");
+			perror("connect: ");
 			return -2;
 		}
 	
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
 		char message_buffer[message_length];
 		size_t recv_size = recv(sockfd, (void*) message_buffer, message_length, 0);
 		if(recv_size < 0) {
-			perror("recv");
+			perror("recv: ");
 			return -3;
 		}
 	
@@ -137,13 +137,14 @@ int main(int argc, char** argv) {
 		}
 	
 		if (debug) {
-			printf("%s\n", message_buffer);
+			printf("Received: %s\n", message_buffer);
 		}
 
 		std::string message(message_buffer);
 		//Trim the message of whitespace
 		rtrim(message);
 		if(message == "REBOOT") {
+			printf("Rebooting!\n");
 			reboot();
 		}
 
