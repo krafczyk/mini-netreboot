@@ -67,6 +67,9 @@ void reboot() {
 		sleep(1);
 	}
 
+	// Wait!!! Give the server a chance to delete the file.
+	sleep(10);
+
 	//Reboot!
 	int fd = open(kernel_sysrq_trigger, O_WRONLY);
 	write(fd, "b", 1);
