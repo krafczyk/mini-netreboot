@@ -9,8 +9,49 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <sstream>
 
 #include "ArgParseStandalone.h"
+#include "config.h"
+
+bool load_config(std::string& host, int& port, const std::string config_path) {
+	std::ifstream fconfig(config_path);
+	bool host_set = false;
+	bool port_set = false;
+	if (fconfig.is_open()) {
+		while(!fconfig.eof()) {
+			std::string new_line;
+			std::stringstream S;
+			S << new_line;
+			std::getline(fconfig, new_line);
+			std::string name;
+			S >> name;
+			try {
+				if (name != "read-host") {
+					S >> host;
+					host_set = true;
+				}
+				if (name != "read-port") {
+					S >> port;
+					port_set = true;
+				}
+			} catch (...) {
+				return false;
+			}
+		}
+	} else {
+		return false;
+	}
+	if (host_set && port_set) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 bool socket_connect(int* sock, const char* host, const in_port_t port) {
 	struct addrinfo hints;
@@ -99,14 +140,21 @@ int main(int argc, char** argv) {
 	sigaction(SIGTERM, &action, NULL);
 	sigaction(SIGINT, &action, NULL);
 
+	std::string host_input = "localhost";
 	std::string host = "localhost";
+	bool host_passed = false;
+	int port_input = 9090;
 	int port = 9090;
+	bool port_passed = false;
 	bool debug = false;
 
+	std::string config_path = MINI_NETREBOOT_INSTALL_PREFIX "/etc/mini-netreboot/mini-netreboot.conf";
+
 	ArgParse::ArgParser Parser("mini-netreboot-read");
-	Parser.AddArgument("-h/--host", "Host to connect to", &host);
-	Parser.AddArgument("-p/--port", "Port to connect to", &port);
-	Parser.AddArgument("-d/--debug", "Report whats going on", &debug);
+	Parser.AddArgument("-c/--conf", "Config file to use", &config_path, ArgParse::Argument::Optional);
+	Parser.AddArgument("--host", "Host to connect to", &host_input, ArgParse::Argument::Optional, &host_passed);
+	Parser.AddArgument("-p/--port", "Port to connect to", &port_input,  ArgParse::Argument::Optional,&port_passed);
+	Parser.AddArgument("-d/--debug", "Report whats going on", &debug, ArgParse::Argument::Optional);
 
 	if(Parser.ParseArgs(argc, argv) < 0) {
 		printf("There was a problem parsing args!");
@@ -116,6 +164,27 @@ int main(int argc, char** argv) {
 	if(Parser.HelpPrinted()) {
 		return 0;
 	}
+
+	// Load config file
+	if(debug) {
+		printf("Attempting to read config file %s\n", config_path.c_str());
+	}
+
+	if(!load_config(host, port, config_path)) {
+		printf("Problem reading config file!\n");
+		return -1;
+	}
+
+	if (host_passed) {
+		host = host_input;
+	}
+
+	if (port_passed) {
+		port = port_input;
+	}
+
+	// Report configuration
+	printf("Reading from %s:%i\n", host.c_str(), port);
 
 	while (true) {
 		//Connect to specified host/port
