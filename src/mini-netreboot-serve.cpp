@@ -167,16 +167,16 @@ int main(int argc, char** argv) {
 		return -2;
 	}
 
-	// Listen to the port
-	if (listen(sockfd, 20) != 0) {
-		perror("listen: ");
-		return -3;
-	}
-
 	const int message_length = 1024;
 	char message[message_length]; 
 
 	while (true) {
+		// Listen to the port
+		if (listen(sockfd, 20) != 0) {
+			perror("listen: ");
+			return -3;
+		}
+
 		int clientfd;
 		struct sockaddr_in client_addr;
 		unsigned int addrlen=sizeof(client_addr);
