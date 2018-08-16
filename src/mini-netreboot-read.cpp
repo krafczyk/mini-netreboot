@@ -18,41 +18,6 @@
 #include "ArgParseStandalone.h"
 #include "config.h"
 
-bool load_config(std::string& host, int& port, const std::string config_path) {
-	std::ifstream fconfig(config_path);
-	bool host_set = false;
-	bool port_set = false;
-	if (fconfig.is_open()) {
-		while(!fconfig.eof()) {
-			std::string new_line;
-			std::stringstream S;
-			S << new_line;
-			std::getline(fconfig, new_line);
-			std::string name;
-			S >> name;
-			try {
-				if (name != "read-host") {
-					S >> host;
-					host_set = true;
-				}
-				if (name != "read-port") {
-					S >> port;
-					port_set = true;
-				}
-			} catch (...) {
-				return false;
-			}
-		}
-	} else {
-		return false;
-	}
-	if (host_set && port_set) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 bool socket_connect(int* sock, const char* host, const in_port_t port) {
 	struct addrinfo hints;
 	struct addrinfo* servinfo;
@@ -118,6 +83,35 @@ void reboot() {
 	return;
 }
 
+
+void read_configuration_file(std::string& read_host, int& read_port, int& serve_port, std::string& serve_file, const std::string& filepath) {
+	const int max_length = 1024;
+	char value_str[max_length];
+	int value;
+
+	//Don't do anything if can't access
+	if(access(filepath.c_str(), F_OK) == -1) {
+		return;
+	}
+
+	//Open file
+	FILE* fconf = fopen(filepath.c_str(), "r");
+	if (fconf == 0) {
+		return;
+	}
+
+	//Can easily fail if not in just the right format.
+	fscanf(fconf, "read-host %s\n", value_str);
+	read_host = value_str;
+	fscanf(fconf, "read-port %d\n", &value);
+	read_port = value;
+	fscanf(fconf, "serve-port %d\n", &value);
+	serve_port = value;
+	fscanf(fconf, "serve-file %s\n", value_str);
+	serve_file = value_str;
+	return;
+}
+
 static inline void rtrim(std::string& s) {
 	s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
 		return !std::isspace(ch);
@@ -170,17 +164,23 @@ int main(int argc, char** argv) {
 		printf("Attempting to read config file %s\n", config_path.c_str());
 	}
 
-	if(!load_config(host, port, config_path)) {
-		printf("Problem reading config file!\n");
-		return -1;
-	}
+	std::string read_host = "localhost";
+	int read_port = 9090;
+	int serve_port = 9090;
+	std::string serve_file = "/reboot.txt";
+
+	read_configuration_file(read_host, read_port, serve_port, serve_file, config_path);
 
 	if (host_passed) {
 		host = host_input;
+	} else {
+		host = read_host;
 	}
 
 	if (port_passed) {
 		port = port_input;
+	} else {
+		port = read_port;
 	}
 
 	// Report configuration
