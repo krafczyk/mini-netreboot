@@ -9,6 +9,7 @@
 #include <fcntl.h>
 
 #include "ArgParseStandalone.h"
+#include "config.h"
 
 bool socket_bind(int* sock, const in_port_t port) {
 	struct sockaddr_in addr;
@@ -78,7 +79,7 @@ void reset_message(const std::string& filepath) {
 	return;
 }
 
-void read_configuration_file(std::string& read_host, int& read_port, int& serve_port, std::string& serve_file, const std::string& filepath) {
+void read_configuration_file(std::string& read_host, int& port, std::string& serve_file, const std::string& filepath) {
 	const int max_length = 1024;
 	char value_str[max_length];
 	int value;
@@ -97,10 +98,8 @@ void read_configuration_file(std::string& read_host, int& read_port, int& serve_
 	//Can easily fail if not in just the right format.
 	fscanf(fconf, "read-host %s\n", value_str);
 	read_host = value_str;
-	fscanf(fconf, "read-port %d\n", &value);
-	read_port = value;
-	fscanf(fconf, "serve-port %d\n", &value);
-	serve_port = value;
+	fscanf(fconf, "port %d\n", &value);
+	port = value;
 	fscanf(fconf, "serve-file %s\n", value_str);
 	serve_file = value_str;
 	return;
@@ -123,11 +122,19 @@ int main(int argc, char** argv) {
 	sigaction(SIGTERM, &action, NULL);
 	sigaction(SIGINT, &action, NULL);
 
-	std::string config_path = "/etc/mini-netreboot/mini-netreboot.conf";
+	std::string config_path = MINI_NETREBOOT_INSTALL_PREFIX "/etc/mini-netreboot/mini-netreboot.conf";
 	bool debug = false;
 
+	int port = 9090;
+	int port_input = 9090;
+	bool port_passed = false;
+	std::string serve_file_input = "/reboot.txt";
+	bool serve_file_passed = false;
+
 	ArgParse::ArgParser Parser("mini-netreboot-serve");
-	Parser.AddArgument("-c/--conf", "Filepath of config file", &config_path);
+	Parser.AddArgument("-c/--conf", "Filepath of config file", &config_path, ArgParse::Argument::Optional);
+	Parser.AddArgument("-p/--port", "Port to use", &port_input, ArgParse::Argument::Optional, &port_passed);
+	Parser.AddArgument("-s/--serve-file", "Serve file path", &serve_file_input, ArgParse::Argument::Optional, &serve_file_passed);
 	Parser.AddArgument("-d/--debug", "Report whats going on", &debug);
 
 	if(Parser.ParseArgs(argc, argv) < 0) {
@@ -140,13 +147,22 @@ int main(int argc, char** argv) {
 	}
 
 	std::string read_host = "localhost";
-	int read_port = 9090;
-	int serve_port = 9090;
 	std::string serve_file = "/reboot.txt";
 
-	read_configuration_file(read_host, read_port, serve_port, serve_file, config_path);
+	read_configuration_file(read_host, port, serve_file, config_path);
 
-	if(!socket_bind(&sockfd, serve_port)) {
+	if (port_passed) {
+		port = port_input;
+	}
+
+	if (serve_file_passed) {
+		serve_file = serve_file_input;
+	}
+
+	// Report configuration
+	printf("Serving %s on port %i\n", serve_file.c_str(), port);
+
+	if(!socket_bind(&sockfd, port)) {
 		perror("bind: ");
 		return -2;
 	}

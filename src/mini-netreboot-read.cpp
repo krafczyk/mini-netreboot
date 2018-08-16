@@ -84,7 +84,7 @@ void reboot() {
 }
 
 
-void read_configuration_file(std::string& read_host, int& read_port, int& serve_port, std::string& serve_file, const std::string& filepath) {
+void read_configuration_file(std::string& read_host, int& port, std::string& serve_file, const std::string& filepath) {
 	const int max_length = 1024;
 	char value_str[max_length];
 	int value;
@@ -103,10 +103,8 @@ void read_configuration_file(std::string& read_host, int& read_port, int& serve_
 	//Can easily fail if not in just the right format.
 	fscanf(fconf, "read-host %s\n", value_str);
 	read_host = value_str;
-	fscanf(fconf, "read-port %d\n", &value);
-	read_port = value;
-	fscanf(fconf, "serve-port %d\n", &value);
-	serve_port = value;
+	fscanf(fconf, "port %d\n", &value);
+	port = value;
 	fscanf(fconf, "serve-file %s\n", value_str);
 	serve_file = value_str;
 	return;
@@ -165,11 +163,9 @@ int main(int argc, char** argv) {
 	}
 
 	std::string read_host = "localhost";
-	int read_port = 9090;
-	int serve_port = 9090;
 	std::string serve_file = "/reboot.txt";
 
-	read_configuration_file(read_host, read_port, serve_port, serve_file, config_path);
+	read_configuration_file(read_host, port, serve_file, config_path);
 
 	if (host_passed) {
 		host = host_input;
@@ -179,8 +175,6 @@ int main(int argc, char** argv) {
 
 	if (port_passed) {
 		port = port_input;
-	} else {
-		port = read_port;
 	}
 
 	// Report configuration
