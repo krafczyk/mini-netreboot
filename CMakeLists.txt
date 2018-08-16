@@ -3,9 +3,15 @@ project(mini-netreboot)
 
 find_package(PkgConfig)
 
+if(NOT FINAL_INSTALL_PREFIX)
+set(FINAL_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+endif()
+
 add_definitions("-std=c++11")
 
-include_directories(inc)
+include_directories(${CMAKE_SOURCE_DIR}/inc ${CMAKE_BINARY_DIR}/inc)
+
+configure_file(${CMAKE_SOURCE_DIR}/inc/config.h.in ${CMAKE_BINARY_DIR}/inc/config.h)
 
 add_executable(mini-netreboot-serve src/mini-netreboot-serve.cpp)
 add_executable(mini-netreboot-read src/mini-netreboot-read.cpp)
